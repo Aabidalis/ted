@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TEDx SNPSU</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic Reset & Body Styles */
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: #0d0d0d;
+            /* Dark background color */
+            color: #ffffff;
+            /* White text color */
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll */
+            cursor: none;
+            /* Hide default cursor */
+        }
+
+        /* Custom Cursor Follower */
+        .cursor-follower {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background-color: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            transition: opacity 0.3s ease, transform 0.1s ease;
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.6), 0 0 40px rgba(255, 255, 255, 0.4), 0 0 60px rgba(255, 255, 255, 0.2);
+            opacity: 0;
+        }
+
+        .cursor-follower.visible {
+            opacity: 1;
+        }
+
+        /* Canvas for particles */
+        #particleCanvas {
+            position: fixed;
+            /* Fixed position to cover the entire viewport */
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            /* Send it to the background */
+            background-color: #0d0d0d;
+            /* Ensure background color matches body */
+        }
+
+        /* Header Styles */
+        header {
+            background-color: transparent;
+            padding: 1rem 1.5rem;
+            position: relative;
+            /* Needed for absolute positioning of mobile menu */
+            z-index: 10;
+            /* Ensure header is above particles */
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            max-width: 1200px;
+            /* Limit header width */
+            margin: 0 auto;
+            /* Center the header content */
+        }
+
+        /* Logo Section */
+        .logo {
+            display: flex;
+            align-items: center;
+            flex-shrink: 0;
+            color: #ffffff;
+            margin-right: 1.5rem;
+        }
+
+        .logo img {
+            height: 3rem;
+            margin-right: 0.5rem;
+            border-radius: 0.25rem;
+            /* Rounded corners for the logo placeholder */
+        }
+
+        .logo span {
+            font-weight: 600;
+            /* Semi-bold */
+            font-size: 1.25rem;
+            /* text-xl */
+            letter-spacing: -0.025em;
+            /* tracking-tight */
+            color: #ffffff;
+            /* Ensure SNPSU in logo is white */
+        }
+
+        /* Navigation Links (Middle Section) */
+        .nav-links {
+            display: flex;
+            flex-grow: 1;
+            justify-content: center;
+            list-style: none;
+            /* Remove bullet points */
+            padding: 0;
+            margin: 0;
+        }
+
+        .nav-links li {
+            margin: 0 1rem;
+            /* Spacing between links */
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0.75rem;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 0.875rem;
+            /* text-sm */
+            border-radius: 0.25rem;
+            /* rounded-md */
+            transition: color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .nav-link i {
+            margin-right: 0.25rem;
+        }
+
+        .nav-link:hover {
+            color: #e53e3e;
+            /* Red accent on hover */
+
+        }
+
+        /* Contact Button (Right Section) */
+        .contact-button {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            /* text-sm */
+            line-height: 1.25;
+            border: 1px solid #ffffff;
+            border-radius: 0.25rem;
+            /* rounded */
+            color: #ffffff;
+            text-decoration: none;
+            transition: border-color 0.3s ease, color 0.3s ease, background-color 0.3s ease;
+        }
+
+        .contact-button i {
+            margin-right: 0.25rem;
+        }
+
+        .contact-button:hover {
+            border-color: transparent;
+            color: #e53e3e;
+            /* Red accent on hover */
+            background-color: #ffffff;
+        }
+
+        /* Mobile Menu Button (Hamburger) */
+        .mobile-menu-button {
+            display: none;
+            /* Hidden by default on larger screens */
+            padding: 0.5rem 0.75rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 24px;
+            height: 24px;
+            transition: all 0.3s ease;
+        }
+
+        .mobile-menu-button .hamburger-line {
+            width: 100%;
+            height: 2px;
+            background-color: #ffffff;
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+
+        .mobile-menu-button.active .hamburger-line {
+            background-color: #e53e3e;
+        }
+
+        .mobile-menu-button.active .hamburger-line:nth-child(1) {
+            transform: rotate(45deg) translate(5px, 5px);
+        }
+
+        .mobile-menu-button.active .hamburger-line:nth-child(2) {
+            opacity: 0;
+        }
+
+        .mobile-menu-button.active .hamburger-line:nth-child(3) {
+            transform: rotate(-45deg) translate(7px, -6px);
+        }
+
+        /* Mobile Navigation Overlay */
+        .mobile-nav-overlay {
+            display: none;
+            /* Hidden by default */
+            position: absolute;
+            top: 100%;
+            /* Position below the header */
+            left: 0;
+            width: 100%;
+            background-color: #1a1a1a;
+            /* Slightly darker background for overlay */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            padding: 1rem 0;
+            border-radius: 0 0 0.5rem 0.5rem;
+        }
+
+        .mobile-nav-overlay.active {
+            display: block;
+            /* Show when active */
+        }
+
+        .mobile-nav-overlay ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+
+        .mobile-nav-overlay ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .mobile-nav-overlay .nav-link {
+            padding: 0.75rem 1rem;
+            display: block;
+            font-size: 1rem;
+        }
+
+        /* Main Content Area */
+        main {
+            max-width: 960px;
+            /* container mx-auto */
+            margin: 2rem auto;
+            /* p-8 */
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+            /* Ensure main content is above particles */
+            z-index: 5;
+        }
+
+        .main-title-container {
+            display: flex;
+            justify-content: center;
+            align-items: baseline;
+            /* Align text baselines */
+            margin-bottom: 1rem;
+            /* mb-4 */
+            margin-top: 100px;
+        }
+
+        .main-title-tedx {
+            font-size: 3rem;
+            /* text-5xl */
+            font-weight: 700;
+            /* font-bold */
+            color: #e53e3e;
+            /* text-red-500 */
+            margin-right: 0.75rem;
+            /* Space between TEDx and SNPSU */
+        }
+
+        .main-title-snpsu {
+            font-size: 3rem;
+            /* Adjusted size to match the image */
+            font-weight: 700;
+            /* Bold */
+            color: #ffffff;
+            /* White color */
+        }
+
+        main h2 {
+            font-size: 4.875rem;
+            /* text-3xl */
+            font-weight: 600;
+            /* font-semibold */
+            color: #ffffff;
+            /* This ensures "Tatv" is white */
+            margin-bottom: 1.5rem;
+            /* mb-6 */
+            margin-top: 0px;
+        }
+
+        main p {
+            font-size: 1.25rem;
+            /* text-xl */
+            color: #d1d5db;
+            /* text-gray-300 */
+            margin-bottom: 2rem;
+            /* mb-8 */
+        }
+
+        .book-tickets-button {
+            background-color: #dc2626;
+            /* bg-red-600 */
+            color: #ffffff;
+            font-weight: 700;
+            /* font-bold */
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            /* rounded-lg */
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            /* shadow-lg */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            text-decoration: none;
+            /* Remove underline */
+            display: inline-block;
+            /* Allow padding and sizing */
+            border: none;
+            /* Remove default button border */
+            cursor: pointer;
+        }
+
+        .book-tickets-button:hover {
+            background-color: #b91c1c;
+            /* hover:bg-red-700 */
+            transform: scale(1.05);
+            /* hover:scale-105 */
+        }
+
+        .scroll-down-indicator {
+            margin-top: 4rem;
+            /* mt-16 */
+            color: #9ca3af;
+            /* text-gray-400 */
+        }
+
+        .scroll-down-indicator i {
+            font-size: 1.5rem;
+            /* text-2xl */
+            animation: bounce 1s infinite;
+            /* animate-bounce */
+        }
+
+        /* Keyframe Animation for Bounce */
+        @keyframes bounce {
+
+            0%,
+            100% {
+                transform: translateY(-25%);
+                animation-timing-function: cubic-bezier(0.8, 0, 1, 1);
+            }
+
+            50% {
+                transform: translateY(0);
+                animation-timing-function: cubic-bezier(0, 0, 0.2, 1);
+            }
+        }
+
+        /* Responsive Design (Media Queries) */
+        @media (max-width: 768px) {
+
+            /* md breakpoint for Tailwind is 768px */
+            .nav-links,
+            .contact-button-wrapper {
+                /* Hide contact button wrapper too */
+                display: none;
+                /* Hide on small screens */
+            }
+
+            .mobile-menu-button {
+                display: flex;
+                /* Show hamburger button */
+            }
+
+            header {
+                padding: 1rem;
+                /* Adjust padding for smaller screens */
+            }
+
+            .logo span {
+                font-size: 1rem;
+                /* Smaller font for logo text */
+            }
+
+            .main-title-tedx,
+            .main-title-snpsu {
+                font-size: 2.5rem;
+                /* Adjust font size for mobile */
+            }
+
+            main h2 {
+                font-size: 1.5rem;
+            }
+
+            main p {
+                font-size: 1rem;
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+  /* About Us Section Styles */
+    .about-section {
+        max-width: 1200px; /* Match header width for consistency */
+        margin: 4rem auto; /* Add margin top and bottom */
+        padding: 10rem;
+        background-color: #0d0d0d;
+        position: relative;
+        z-index: 5; /* Ensure it's above particles */
+        text-align: center; /* Center the main title */
+    }
+
+    /* New styles for the centered "About Us" title */
+    .section-title-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 2rem; /* Space below the title */
+        width: 100%;
+    }
+
+    .section-main-title {
+        font-size: 2.5rem; /* text-4xl */
+        font-weight: 700; /* font-bold */
+        color: #ffffff; /* White color for the main title */
+        margin: 0 1rem; /* Space between title and lines */
+        white-space: nowrap; /* Prevent title from wrapping */
+    }
+
+    .title-line {
+        flex-grow: 1; /* Allow line to grow */
+        border: none;
+        border-top: 1px solid #d1d5db; /* Light gray line */
+        margin: 0;
+    }
+
+    .about-content-wrapper {
+        display: flex;
+        flex-wrap: wrap; /* Allow wrapping on smaller screens */
+        gap: 2rem; /* Space between columns */
+        align-items: center; /* Vertically align items */
+        text-align: left; /* Reset text alignment for content */
+    }
+
+    .about-content {
+        flex: 1; /* Take up available space */
+        min-width: 300px; /* Minimum width before wrapping */
+        text-align: left; /* Align text to the left within its block */
+    }
+
+    .about-content h3 {
+        font-size: 2rem; /* text-3xl */
+        font-weight: 600; /* font-semibold */
+        color: #e53e3e; /* Red color for sub-heading */
+        margin-bottom: 1rem;
+    }
+
+    .about-content p {
+        font-size: 1.125rem; /* text-lg */
+        color: #d1d5db; /* text-gray-300 */
+        line-height: 1.8;
+        margin-bottom: 1rem;
+    }
+
+    .about-images {
+        flex: 1; /* Take up available space */
+        min-width: 300px; /* Minimum width before wrapping */
+        display: grid;
+        grid-template-columns: repeat(2, 1fr); /* Two columns for images */
+        gap: 1rem; /* Space between images */
+        position: relative;
+        padding: 2rem; /* Add padding to ensure images don't go out of bounds with tilt */
+    }
+
+    .about-images img {
+        width: 100%; /* Make images fill their grid cell */
+        height: auto;
+        border-radius: 0.75rem; /* rounded-xl */
+        box-shadow: 0 10px 15px rgba(0, 0, 0, 0.3); /* shadow-xl */
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        object-fit: cover; /* Ensure images cover the area without distortion */
+    }
+
+    .about-images img:nth-child(1) {
+        transform: rotate(-5deg); /* Tilt first image */
+        grid-column: 1 / 3; /* Span two columns */
+        grid-row: 1;
+        width: 60%; /* Smaller image size */
+        justify-self: center; /* Center it */
+        z-index: 3; /* Bring to front */
+    }
+
+    .about-images img:nth-child(2) {
+        transform: rotate(8deg); /* Tilt second image */
+        grid-column: 1;
+        grid-row: 2;
+        width: 70%; /* Smaller image size */
+        margin-top: -15%; /* Adjusted for new size */
+        z-index: 2;
+        justify-self: end; /* Align to end of its grid cell */
+    }
+
+    .about-images img:nth-child(3) {
+        transform: rotate(-12deg); /* Tilt third image */
+        grid-column: 2;
+        grid-row: 2;
+        width: 70%; /* Smaller image size */
+        margin-top: -5%; /* Adjusted for new size */
+        z-index: 1;
+        justify-self: start; /* Align to start of its grid cell */
+    }
+
+    /* Explore More Button Styles */
+    .explore-more-button {
+        display: inline-block;
+        
+        color: #ffffff;
+        font-weight: 700;
+        padding: 0.75rem 1.5rem;
+        border: 1px solid #ffffff !important;  
+        border-radius: 0.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.3s ease, transform 0.3s ease;
+        text-decoration: none;
+        margin-top: 1.5rem; /* Space from content above */
+        border: none;
+        cursor: pointer;
+    }
+
+    .explore-more-button:hover {
+        background-color: #ffffff; /* Darker red on hover */
+        color: #0d0d0d;
+        transform: scale(1.05);
+    }
+
+    /* Responsive Design (Media Queries) */
+    @media (max-width: 768px) { /* md breakpoint for Tailwind is 768px */
+        .about-section {
+            padding: 1.5rem;
+        }
+
+        .section-main-title {
+            font-size: 2rem; /* Smaller font for mobile */
+        }
+
+        .about-content-wrapper {
+            flex-direction: column; /* Stack columns on small screens */
+        }
+
+        .about-content {
+            text-align: center; /* Center text on mobile */
+        }
+
+        .about-images {
+            grid-template-columns: 1fr; /* Single column for images on mobile */
+            padding: 1rem;
+        }
+
+        .about-images img {
+            width: 90%; /* Adjust width for single column */
+            margin: 0 auto; /* Center images */
+            transform: none !important; /* Remove tilt on mobile for better stacking */
+            position: static; /* Remove absolute positioning */
+        }
+
+        .about-images img:nth-child(1),
+        .about-images img:nth-child(2),
+        .about-images img:nth-child(3) {
+            margin-top: 0; /* Remove negative margin for stacking */
+            grid-column: auto;
+            grid-row: auto;
+            width: 90%; /* Ensure they are not too wide */
+        }
+    }
+    </style>
+</head>
+
+<body>
+    <div class="cursor-follower"></div>
+
+    <canvas id="particleCanvas"></canvas>
+
+    <header>
+        <nav>
+            <div class="logo">
+                <img src="/assets/logo-white.png" alt="TEDx Logo">
+
+            </div>
+
+            <ul class="nav-links" id="main-nav-links">
+                <li><a href="#" class="nav-link"><i class="fas fa-home"></i>Home</a></li>
+                <li><a href="#" class="nav-link"><i class="fas fa-info-circle"></i>About</a></li>
+                <li><a href="#" class="nav-link"><i class="fas fa-microphone"></i>Speakers</a></li>
+                <li><a href="#" class="nav-link"><i class="fas fa-handshake"></i>Sponsor</a></li>
+                <li><a href="#" class="nav-link"><i class="fas fa-user-friends"></i>Team</a></li>
+            </ul>
+
+            <div class="contact-button-wrapper">
+                <a href="#" class="contact-button"><i class="fas fa-envelope"></i>Contact Us</a>
+            </div>
+
+            <div class="mobile-menu-button" id="mobile-menu-button">
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+                <div class="hamburger-line"></div>
+            </div>
+
+            <div class="mobile-nav-overlay" id="mobile-nav-overlay">
+                <ul>
+                    <li><a href="#" class="nav-link"><i class="fas fa-home"></i>Home</a></li>
+                    <li><a href="#" class="nav-link"><i class="fas fa-info-circle"></i>About</a></li>
+                    <li><a href="#" class="nav-link"><i class="fas fa-microphone"></i>Speakers</a></li>
+                    <li><a href="#" class="nav-link"><i class="fas fa-handshake"></i>Sponsor</a></li>
+                    <li><a href="#" class="nav-link"><i class="fas fa-user-friends"></i>Team</a></li>
+                    <li><a href="#" class="nav-link"><i class="fas fa-envelope"></i>Contact Us</a></li>
+                </ul>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <div class="main-title-container">
+            <span class="main-title-tedx">TEDx</span>
+            <span class="main-title-snpsu">SNPSU</span>
+        </div>
+        <h2>Shravan (श्रवण)</h2>
+        <p>Listen. Reflect. Evolve.</p>
+        <a href="#" class="book-tickets-button">Book your Tickets</a>
+        <div class="scroll-down-indicator">
+            <i class="fas fa-chevron-down"></i>
+        </div>
+    </main>
+
+
+
+
+
+
+
+
+<section id="about-us" class="about-section">
+    <!-- Main Section Title -->
+    <div class="section-title-container">
+        <hr class="title-line">
+        <h2 class="section-main-title">About Us</h2>
+        <hr class="title-line">
+    </div>
+
+    <div class="about-content-wrapper">
+        <div class="about-content">
+            <h3>TEDx SNPSU</h3>
+            <p>
+                Welcome to TEDx SNPSU, where ideas worth spreading come to life. Our theme, "Shravan (श्रवण)," encapsulates the profound act of listening—not just to sounds, but to perspectives, experiences, and the subtle whispers of innovation. It's an invitation to reflect on what we hear, process it deeply, and allow it to inspire our evolution.
+            </p>
+           
+            <a href="#" class="explore-more-button">Explore More</a>
+        </div>
+        <div class="about-images">
+            <img src="/assets/lakshmi-convention-center-hessargatta-bangalore-banquet-halls-gv4lknw6il.avif" alt="TEDx Event Image 1">
+            <img src="/assets/lakshmi-convention-center-hessargatta-bangalore-banquet-halls-gv4lknw6il.avif" alt="TEDx Event Image 2">
+            <img src="/assets/mother-tekla-auditorium-m-g-road-bangalore-conference-halls-ezhaddqyv7.avif" alt="TEDx Event Image 3">
+        </div>
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // --- Cursor Follower Logic ---
+            const cursorFollower = document.querySelector('.cursor-follower');
+            let mouseX = 0;
+            let mouseY = 0;
+            let isMouseMoving = false;
+            let hideTimeout;
+
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                cursorFollower.style.left = mouseX - 10 + 'px';
+                cursorFollower.style.top = mouseY - 10 + 'px';
+
+                // Show cursor follower when mouse moves
+                cursorFollower.classList.add('visible');
+                isMouseMoving = true;
+
+                // Clear existing timeout
+                clearTimeout(hideTimeout);
+
+                // Set timeout to hide cursor after 2 seconds of no movement
+                hideTimeout = setTimeout(() => {
+                    cursorFollower.classList.remove('visible');
+                    isMouseMoving = false;
+                }, 2000);
+            });
+
+            // Hide cursor when mouse leaves the window
+            document.addEventListener('mouseleave', () => {
+                cursorFollower.classList.remove('visible');
+                isMouseMoving = false;
+            });
+
+            // Show cursor when mouse enters the window
+            document.addEventListener('mouseenter', () => {
+                cursorFollower.classList.add('visible');
+                isMouseMoving = true;
+            });
+
+            // --- Mobile Menu Logic ---
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileNavOverlay = document.getElementById('mobile-nav-overlay');
+
+            if (mobileMenuButton && mobileNavOverlay) {
+                mobileMenuButton.addEventListener('click', function () {
+                    mobileNavOverlay.classList.toggle('active');
+                    mobileMenuButton.classList.toggle('active');
+                });
+
+                // Optional: Close menu if a link inside is clicked (for single-page apps)
+                mobileNavOverlay.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileNavOverlay.classList.remove('active');
+                        mobileMenuButton.classList.remove('active');
+                    });
+                });
+            }
+
+            // --- Particle Background Logic ---
+            const canvas = document.getElementById('particleCanvas');
+            const ctx = canvas.getContext('2d');
+            let particles = [];
+            let currentNumberOfParticles = 150; // Start with the initial number
+            const maxParticleRadius = 1.5; // Max size of particles
+            const repelDistance = 100; // Distance at which particles start to repel from cursor
+            const pageLoadTime = Date.now(); // Track when page loaded
+            let brightnessMultiplier = 1; // Will increase over time
+
+            // New: Variables for increasing particles over time
+            const particleIncreaseInterval = 5000; // Add particles every 5 seconds
+            const particlesToAddPerInterval = 5; // Number of particles to add at each interval
+            let lastParticleAddTime = Date.now();
+            const maxParticles = 500; // Cap the total number of particles
+
+            // Function to set canvas dimensions
+            function setCanvasDimensions() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+
+            // Particle constructor
+            function Particle(x, y, radius, dx, dy) {
+                this.x = x;
+                this.y = y;
+                this.originalX = x;
+                this.originalY = y;
+                this.radius = radius;
+                this.dx = dx; // velocity x
+                this.dy = dy; // velocity y
+                this.baseOpacity = 0.3; // Start with low opacity
+                this.currentOpacity = this.baseOpacity;
+            }
+
+            // Draw particle
+            Particle.prototype.draw = function () {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2, false);
+                ctx.fillStyle = `rgba(229, 62, 62, ${this.currentOpacity})`;
+                ctx.fill();
+            };
+
+            // Update particle position
+            Particle.prototype.update = function () {
+                // Gradually increase brightness based on time spent on page
+                const timeSpent = (Date.now() - pageLoadTime) / 1000; // seconds
+                brightnessMultiplier = Math.min(1 + (timeSpent * 0.1), 3); // Max 3x brightness after 20 seconds
+
+                // Update particle opacity based on brightness multiplier
+                this.currentOpacity = Math.min(this.baseOpacity * brightnessMultiplier, 1);
+
+                // Calculate distance from cursor
+                const distanceFromCursor = Math.sqrt(
+                    Math.pow(mouseX - this.x, 2) + Math.pow(mouseY - this.y, 2)
+                );
+
+                // Repel from cursor if within repel distance
+                if (distanceFromCursor < repelDistance) {
+                    const repelForce = (repelDistance - distanceFromCursor) / repelDistance;
+                    const repelX = (this.x - mouseX) * repelForce * 0.1;
+                    const repelY = (this.y - mouseY) * repelForce * 0.1;
+
+                    this.x += repelX;
+                    this.y += repelY;
+                }
+
+                // Normal movement (keep particles moving)
+                this.x += this.dx;
+                this.y += this.dy;
+
+                // Bounce off walls
+                if (this.x + this.radius > canvas.width || this.x - this.radius < 0) {
+                    this.dx = -this.dx;
+                }
+                if (this.y + this.radius > canvas.height || this.y - this.radius < 0) {
+                    this.dy = -this.dy;
+                }
+
+                this.draw();
+            };
+
+            // Initialize particles (now just for the initial set)
+            function initParticles() {
+                particles = []; // Clear existing particles
+                for (let i = 0; i < currentNumberOfParticles; i++) {
+                    addParticle();
+                }
+            }
+
+            // Function to add a single particle
+            function addParticle() {
+                const radius = Math.random() * maxParticleRadius + 0.5; // Random radius between 0.5 and maxParticleRadius
+                const x = Math.random() * (canvas.width - radius * 2) + radius;
+                const y = Math.random() * (canvas.height - radius * 2) + radius;
+                const dx = (Math.random() - 0.5) * 0.5; // Small random velocity
+                const dy = (Math.random() - 0.5) * 0.5; // Small random velocity
+                particles.push(new Particle(x, y, radius, dx, dy));
+            }
+
+            // Animation loop
+            function animateParticles() {
+                requestAnimationFrame(animateParticles);
+                ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+
+                // Check if it's time to add more particles
+                if (Date.now() - lastParticleAddTime > particleIncreaseInterval && particles.length < maxParticles) {
+                    for (let i = 0; i < particlesToAddPerInterval; i++) {
+                        if (particles.length < maxParticles) {
+                            addParticle();
+                        } else {
+                            break; // Stop if max particles reached
+                        }
+                    }
+                    lastParticleAddTime = Date.now();
+                }
+
+                for (let i = 0; i < particles.length; i++) {
+                    particles[i].update();
+                }
+            }
+
+            // Event listeners
+            window.addEventListener('resize', () => {
+                setCanvasDimensions();
+                // When resizing, keep the current number of particles, but re-initialize their positions
+                initParticles();
+            });
+
+            // Initial setup
+            setCanvasDimensions();
+            initParticles();
+            animateParticles(); // Start the animation loop
+        });
+    </script>
+</body>
+
+</html>
